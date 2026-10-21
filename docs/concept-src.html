@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>许愿式点餐 · 概念设计</title>
+<style>
+  :root{
+    --ink:#17171a; --ink2:#5b5b63; --ink3:#8e8e96;
+    --line:#e6e3dd; --bg:#fbfaf7; --card:#ffffff;
+    --red:#c8102e; --red-soft:#fdeef0; --grey:#f3f2ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:1174px;background:var(--bg);color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .canvas{padding:44px 48px 40px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:26px}
+  .kicker{font-size:14px;letter-spacing:.18em;color:var(--red);font-weight:700}
+  h1{font-size:40px;letter-spacing:-.01em;margin:8px 0 6px;font-weight:700}
+  header p{font-size:19px;color:var(--ink2)}
+
+  .body{display:grid;grid-template-columns:490px 1fr;gap:44px}
+  h2{font-size:15px;letter-spacing:.12em;color:var(--ink3);font-weight:700;margin-bottom:14px}
+
+  /* 左：界面布局 */
+  .stack{display:flex;flex-direction:column;gap:10px}
+  .block{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:13px 16px;position:relative;
+  }
+  .block .tg{
+    display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;
+    color:#fff;background:var(--ink3);border-radius:5px;padding:2px 7px;margin-bottom:6px;
+  }
+  .block.hi{border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+  .block.hi .tg{background:var(--red)}
+  .block .t{font-size:19px;font-weight:600;display:block;line-height:1.4}
+  .block .s{font-size:14px;color:var(--ink3);display:block;margin-top:4px}
+
+  /* 右：交互流程 */
+  .flow{display:flex;flex-direction:column;gap:0}
+  .step{display:flex;gap:14px;position:relative;padding-bottom:20px}
+  .step:last-child{padding-bottom:0}
+  .step::before{
+    content:"";position:absolute;left:15px;top:34px;bottom:2px;width:1px;background:var(--line);
+  }
+  .step:last-child::before{display:none}
+  .dot{
+    flex:0 0 31px;height:31px;border-radius:50%;background:var(--card);
+    border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:700;color:var(--ink3);z-index:1;
+  }
+  .step:nth-child(1) .dot,.step:nth-child(4) .dot{background:var(--red);border-color:var(--red);color:#fff}
+  .step h3{font-size:20px;font-weight:700;margin-bottom:2px}
+  .step p{font-size:15px;color:var(--ink2);line-height:1.5}
+  .step .tagname{font-size:13px;color:var(--ink3);margin-top:3px}
+
+  .note{
+    margin-top:18px;background:var(--grey);border-radius:10px;padding:13px 16px;
+    font-size:15px;color:var(--ink2);line-height:1.6;
+  }
+  .note b{color:var(--ink)}
+
+  footer{margin-top:30px;border-top:1px solid var(--line);padding-top:20px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:8px 14px;font-size:15px;color:var(--ink2);white-space:nowrap;
+  }
+  .chip b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<div class="canvas">
+  <header>
+    <div class="kicker">概念设计</div>
+    <h1>许愿式点餐</h1>
+    <p>一句话进去，一份付得起的订单出来。中间不问参数。</p>
+  </header>
+
+  <div class="body">
+    <section>
+      <h2>01 · 界面布局（从上到下四层）</h2>
+      <div class="stack">
+        <div class="block">
+          <span class="tg">输入层</span>
+          <span class="t">「今天被领导骂了，想吃点治愈的，30 块以内」</span>
+          <span class="s">只有一个输入框，没有表单、没有选项</span>
+        </div>
+        <div class="block">
+          <span class="tg">拆解层</span>
+          <span class="t">预算 30 元 · 1 人 · 午餐 · 偏甜热食</span>
+          <span class="s">每个字段标来源：你说的 / 我推断的 / 我替你定的</span>
+        </div>
+        <div class="block">
+          <span class="tg">方案层</span>
+          <span class="t">3 个候选，按实付价排序</span>
+          <span class="s">每个方案都带一句能对回原话的理由</span>
+        </div>
+        <div class="block hi">
+          <span class="tg">账单层</span>
+          <span class="t">口算 14.00 ｜ 官方 29.00</span>
+          <span class="s">差额高亮，并说明哪条规则被跳过</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>02 · 交互流程（四步，中间不打断）</h2>
+      <div class="flow">
+        <div class="step">
+          <div class="dot">1</div>
+          <div>
+            <h3>说一句</h3>
+            <p>自然语言，带情绪也行。不必知道预算怎么写、热量怎么算。</p>
+            <div class="tagname">人的介入：只在这里</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="dot">2</div>
+          <div>
+            <h3>拆成约束</h3>
+            <p>把「被领导骂了」翻成「预算 30、单人、偏甜热食」，并标出哪些是我猜的。</p>
+            <div class="tagname">系统动作：翻译 + 自我声明</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="dot">3</div>
+          <div>
+            <h3>出方案</h3>
+            <p>查门店、拉菜单与券、枚举组合、逐单核价。中途不弹选项。</p>
+            <div class="tagname">系统动作：MCP 取数 + 本地求解</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="dot">4</div>
+          <div>
+            <h3>算两遍账</h3>
+            <p>口算价与官方核价并排，差额写明原因。确认后才下单。</p>
+            <div class="tagname">人的介入：只在这里</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        关键的不是少点几下，而是 <b>中间那两段没有被问过任何问题</b>。多数点餐助手会在第三步插进来问「要中薯还是大薯」，那还是问卷。
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <h2>03 · 典型场景</h2>
+    <div class="chips">
+      <div class="chip"><b>被骂了</b> 想吃点治愈的</div>
+      <div class="chip"><b>加班很饿</b> 要吃饱，不吃辣</div>
+      <div class="chip"><b>带同事吃饭</b> 不显得抠，别超预算</div>
+      <div class="chip"><b>减肥但馋</b> 找个能骗过自己的</div>
+      <div class="chip"><b>选择困难</b> 不想看菜单</div>
+    </div>
+  </footer>
+</div>
+</body>
+</html>
