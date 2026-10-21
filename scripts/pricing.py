@@ -111,12 +111,16 @@ def official_price(
     )
 
 
+_SLOT_CN = {"breakfast": "早餐", "lunch": "午餐", "dinner": "晚餐", "latenight": "夜宵"}
+
+
 def _check_coupon(c: dict, items: list[dict], subtotal: float, channel: str, slot: str) -> tuple[bool, str]:
     """返回 (可用?, 原因)。原因在不可用时就是拒绝理由，可用时是生效条件。"""
     if c.get("channel", "any") not in ("any", channel):
         return False, f"仅{'外送' if c['channel']=='delivery' else '到店'}可用，当前是{'外送' if channel=='delivery' else '到店'}"
     if c.get("slot", "any") not in ("any", slot):
-        return False, f"仅{c['slot']}时段可用"
+        only = _SLOT_CN.get(c["slot"], c["slot"])
+        return False, f"仅{only}时段可用，当前是{_SLOT_CN.get(slot, slot)}"
 
     ctype = c.get("type")
     if ctype == "threshold":
