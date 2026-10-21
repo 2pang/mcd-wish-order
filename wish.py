@@ -25,7 +25,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from mcd_client import McpClient, McpError  # noqa: E402
-from planner import build_candidates, is_heavy, load_snapshot  # noqa: E402
+from planner import build_candidates, build_party_plan, is_heavy, load_snapshot  # noqa: E402
 from pricing import compare  # noqa: E402
 from wish_engine import SLOT_CN, parse_wish  # noqa: E402
 
@@ -186,6 +186,86 @@ def official_check(client: McpClient, snap: dict, items: list[dict], units: int)
     }
 
 
+def render_party(wish, plans, live_note: str = "", official: dict | None = None) -> str:
+    """多人分工方案的输出。核心不是总价，是「谁吃什么」。"""
+    lines: list[str] = []
+    lines.append(RULE)
+    lines.append(f"  你说：{wish.raw}")
+    lines.append(RULE)
+    lines.append("")
+    lines.append("  愿望拆开看")
+    lines.append(f"    {pad('人数', 8)}{pad(f'{wish.people} 人', 14)}"
+                 f"{ {'explicit': '你说的', 'inferred': '我推断的', 'default': '我替你定的'}[wish.source.get('people','default')] }")
+    lines.append(f"    {pad('总预算', 8)}{pad(f'{wish.budget:.0f} 元', 14)}"
+                 f"{ {'explicit': '你说的', 'inferred': '我推断的', 'default': '我替你定的'}[wish.source.get('budget','default')] }")
+    lines.append(f"    {pad('餐段', 8)}{pad(SLOT_CN.get(wish.meal_slot, wish.meal_slot), 14)}"
+                 f"{ {'explicit': '你说的', 'inferred': '我推断的', 'default': '我替你定的'}[wish.source.get('meal_slot','default')] }")
+    if wish.undecided:
+        lines.append("    态度    随便（不是没要求，是不想担决策责任）")
+    for n in wish.notes:
+        lines.append(f"    说明    {n}")
+    lines.append("")
+
+    if not plans:
+        lines.append("  没凑出每人一份的分工方案。可以放宽人均预算，或减少人数。")
+        lines.append("")
+        return "\n".join(lines)
+
+    best = plans[0]
+    lines.append(f"  {wish.people} 个人，不用 {wish.people} 份一样的")
+    lines.append("")
+    for a in best["assignments"]:
+        m = a["meal"]
+        lines.append(f"    {a['no']}. {pad(m['name'], 26)}{m['price']:>7.2f} 元")
+    lines.append("")
+    lines.append(
+        f"    {best['distinct']} 种不同 · 覆盖 {best['category_count']} 个品类"
+        f" · 实付 {best['payable']:.2f} 元（人均 {best['payable'] / wish.people:.2f}）"
+    )
+    lines.append("")
+
+    if len(plans) > 1:
+        alt = plans[1]
+        names = "、".join(a["meal"]["name"] for a in alt["assignments"][:3])
+        lines.append(f"    另一套（品类更集中）：{names}…  实付 {alt['payable']:.2f} 元")
+        lines.append("")
+
+    lines.append(RULE)
+    lines.append("  这一桌的账，算两遍")
+    lines.append(RULE)
+    p = best["price"]
+    lines.append(f"    商品原价合计        {p['official']['subtotal']:>8.2f} 元")
+    if p["official"]["delivery_fee"]:
+        lines.append(f"    配送费              {p['official']['delivery_fee']:>8.2f} 元")
+    lines.append(f"    AI 式口算           {p['naive']['payable']:>8.2f} 元   （扣 {p['naive']['discount']:.2f}）")
+    lines.append(f"    官方口径            {p['official']['payable']:>8.2f} 元   （扣 {p['official']['discount']:.2f}）")
+    lines.append("")
+    for r in p["naive"]["notes"]:
+        lines.append(f"      口算这一步：{r}")
+    if p["official"]["applied"]:
+        lines.append(f"      官方真正生效的券：{'、'.join(p['official']['applied'])}")
+    lines.append("")
+    if abs(p["gap"]) > 0.005:
+        lines.append(f"      差 {p['gap']:+.2f} 元。{p['verdict']}。")
+    else:
+        lines.append("      这一次两种算法结果一致。")
+    lines.append("")
+
+    if official is not None and not official.get("error"):
+        local = p["official"]["payable"]
+        same = abs(official["payable"] - local) < 0.01
+        lines.append(f"  官方接口实调      {official['payable']:>8.2f} 元   （返回 {official['raw_cent']} 分）")
+        lines.append(f"  {'与本地口径一致' if same else '与本地口径不一致，错在本地实现'}（本地 {local:.2f} 元）")
+        lines.append("")
+
+    lines.append("  桌上不重样的原因：四份一样的摆上来，就是那句「随便」的后果。")
+    lines.append("")
+    if live_note:
+        lines.append(f"  数据来源：{live_note}")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="许愿式点餐：说一句愿望，拿一份付得起的订单")
     ap.add_argument("wish", nargs="*", help="你想要的，一句话就行")
@@ -229,6 +309,32 @@ def main(argv: list[str] | None = None) -> int:
     results = []
     for text in texts:
         wish = parse_wish(text)
+
+        # 两人及以上走分工模式：不是「同一份 × N」，而是「每人一份不同的」
+        if wish.people >= 2:
+            plans = build_party_plan(wish, snap, limit=2)
+            official = None
+            if client and plans:
+                official = official_check(client, snap, plans[0]["items"], 1)
+            print(render_party(wish, plans, live_note, official))
+            flat = []
+            if plans:
+                b = plans[0]
+                flat = [
+                    {
+                        "name": f"{wish.people} 人分工：" + " / ".join(a["meal"]["name"] for a in b["assignments"]),
+                        "items": [a["meal"]["name"] for a in b["assignments"]],
+                        "codes": [a["meal"]["code"] for a in b["assignments"]],
+                        "unit_count": wish.people,
+                        "score": 0,
+                        "reasons": ["每人一份不同的，桌上不重样"],
+                        "price": b["price"],
+                        "payable": b["payable"],
+                    }
+                ]
+            results.append((wish, flat))
+            continue
+
         cands = build_candidates(wish, snap, limit=3)
         results.append((wish, cands))
         official = None

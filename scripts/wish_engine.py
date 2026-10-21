@@ -77,6 +77,22 @@ AVOID_PATTERNS = {
     "不喝": "drink",
 }
 
+# 「随便」不是没有偏好，而是不愿承担决策责任。
+# 这类输入不能反问「你想吃什么」（他答不出），只能给差异化的选项让他挑。
+UNDECIDED_PATTERNS = [
+    r"随便",
+    r"都行",
+    r"都可以",
+    r"无所谓",
+    r"不知道(吃什么|吃啥|点啥)?",
+    r"你(来)?定",
+    r"你(帮我)?选",
+    r"看你们",
+    r"吃啥都行",
+    r"没啥想法",
+    r"没想法",
+]
+
 CN_NUM = {"一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9, "十": 10}
 
 # 每人预算的兜底默认值（元）。用于用户没说钱、只说了人数或情绪的场合。
@@ -97,6 +113,7 @@ class Wish:
     moods: list[str] = field(default_factory=list)
     taste: list[str] = field(default_factory=list)
     avoid: list[str] = field(default_factory=list)
+    undecided: bool = False
     source: dict = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
 
@@ -124,6 +141,8 @@ class Wish:
             lines.append(f"  {label}：{val}（{tag}）")
         if self.moods:
             lines.append(f"  情绪：{'、'.join(self.moods)} → 倾向 {'、'.join(self.taste) or '无特定倾向'}")
+        if self.undecided:
+            lines.append("  态度：随便（不是没要求，是不想担决策责任）")
         if self.avoid:
             lines.append(f"  排除：{'、'.join(self.avoid)}")
         if self.notes:
@@ -137,6 +156,8 @@ class Wish:
 
 _BUDGET_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(?:元|块|rmb|RMB|人民币)")
 _BUDGET_ALT_RE = re.compile(r"(?:预算|不超过|别超|最多|控制在)\s*(\d+(?:\.\d+)?)")
+_BUDGET_SUFFIX_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(?:元)?\s*(?:以内|以下|之内|左右)")
+_PERHEAD_RE = re.compile(r"人均\s*(\d+(?:\.\d+)?)")
 _PEOPLE_RE = re.compile(r"(\d+|[一二两三四五六七八九十])\s*(?:个)?\s*(?:人|位|同事|朋友|室友)")
 _ALONE_RE = re.compile(r"(一个人|自己吃|单人|就我)")
 
@@ -154,14 +175,7 @@ def parse_wish(text: str, now_hour: int | None = None) -> Wish:
     notes: list[str] = []
     source: dict = {}
 
-    # ---- 预算
-    budget = None
-    m = _BUDGET_RE.search(raw) or _BUDGET_ALT_RE.search(raw)
-    if m:
-        budget = float(m.group(1))
-        source["budget"] = "explicit"
-
-    # ---- 人数
+    # ---- 人数（先算人数，人均预算要用）
     people = 1
     m = _PEOPLE_RE.search(raw)
     if m:
@@ -176,6 +190,21 @@ def parse_wish(text: str, now_hour: int | None = None) -> Wish:
         source["people"] = "explicit"
     else:
         source["people"] = "default"
+
+    # ---- 预算
+    budget = None
+    # 「人均 50」这类说法在多人场景里最常见，必须按人数换算成总预算
+    m = _PERHEAD_RE.search(raw)
+    if m:
+        per_head = float(m.group(1))
+        budget = per_head * people
+        source["budget"] = "explicit"
+        notes.append(f"按人均 {per_head:.0f} 元 × {people} 人 = {budget:.0f} 元")
+    else:
+        m = _BUDGET_RE.search(raw) or _BUDGET_ALT_RE.search(raw) or _BUDGET_SUFFIX_RE.search(raw)
+        if m:
+            budget = float(m.group(1))
+            source["budget"] = "explicit"
 
     # ---- 餐段
     slot = None
@@ -224,6 +253,11 @@ def parse_wish(text: str, now_hour: int | None = None) -> Wish:
         notes.append("「不想显得抠」按「要体面、份量要够」理解")
 
 
+    # 「随便 / 都行 / 你定」：不是没有偏好，是不想担这个决策责任
+    undecided = any(re.search(p, raw) for p in UNDECIDED_PATTERNS)
+    if undecided:
+        notes.append("听到「随便」了。不反问你，直接按大众口味给方案；哪一份不想要，说一声换掉就行")
+
     # ---- 预算兜底
     if budget is None:
         if slot is None:
@@ -240,7 +274,7 @@ def parse_wish(text: str, now_hour: int | None = None) -> Wish:
         slot = "breakfast" if h < 10 else ("lunch" if h < 15 else ("dinner" if h < 21 else "latenight"))
         source["meal_slot"] = "inferred"
 
-    if not moods and not taste:
+    if not moods and not taste and not undecided:
         notes.append("没听出明显偏好，按「不出错的大众口味」配")
 
     return Wish(
@@ -251,6 +285,7 @@ def parse_wish(text: str, now_hour: int | None = None) -> Wish:
         moods=moods,
         taste=taste,
         avoid=avoid,
+        undecided=undecided,
         source=source,
         notes=notes,
     )

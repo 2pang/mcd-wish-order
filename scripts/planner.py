@@ -281,6 +281,114 @@ def pick_best(wish, snap: dict | None = None) -> Candidate | None:
     return cands[0] if cands else None
 
 
+# ------------------------------------------------------------------ 多人分工
+
+def build_party_plan(wish, snap: dict | None = None, limit: int = 2) -> list[dict]:
+    """多人各点不同的分工方案。
+
+    与 build_candidates 的差别只有一件事：那边是「同一份 × N 人」，
+    这里每个人拿到的是不同的一份。
+
+    为什么需要这个：聚餐的真实难点从来不是算总价，而是「谁吃什么」。
+    四份一模一样的餐摆在桌上，就是那句「随便」的后果。
+    所以这里的目标不是「最省」，是「每个人都能接受，且桌上不重复」。
+    """
+    snap = snap or load_snapshot()
+    units = max(wish.people, 1)
+    budget = wish.budget
+    coupons = snap.get("coupons", [])
+    channel = snap.get("channel_default", "pickup")
+    fee = float(snap.get("delivery_fee", 9.0))
+    per_head = budget / units
+
+    scored = []
+    for m in snap["meals"]:
+        price = float(m["price"])
+        if price > per_head * 1.35:
+            continue
+        sc, reasons = _score([m], wish, per_head * 1.35, price)
+        # 多人场合，整份餐（三件套/套餐）更像聚餐，不像凑数
+        if m.get("full_meal"):
+            sc += 2.0
+        scored.append((sc, m, reasons))
+    scored.sort(key=lambda x: (-x[0], float(x[1]["price"])))
+
+    # 每人至少一份主食：纯饮料不能占掉一个人的名额。
+    # 只有当非饮料候选不够分时，才允许饮料补位。
+    mains = [x for x in scored if x[1]["category"] != "饮料"]
+    pool = mains if len(mains) >= units else scored
+    if len(pool) < units:
+        return []
+
+    plans: list[dict] = []
+    for strategy in ("varied", "loose"):
+        picks: list[tuple[dict, list[str]]] = []
+        used: set[str] = set()
+        cats: set[str] = set()
+
+        # 每人固定额度，不动态挪用后面人的预算。
+        # 动态挪用的后果是「前三个吃套餐，第四个只剩一杯饮料」。
+        cap = per_head * 1.02
+
+        for i in range(units):
+            chosen = None
+            for _sc, m, reasons in pool:
+                if m["code"] in used:
+                    continue
+                if float(m["price"]) > cap:
+                    continue
+                if strategy == "varied" and m["category"] in cats:
+                    continue
+                chosen = (m, reasons)
+                break
+            if chosen is None and strategy == "varied":
+                # 品类不重复已经凑不齐，退一步允许同类
+                for _sc, m, reasons in pool:
+                    if m["code"] in used:
+                        continue
+                    if float(m["price"]) > cap:
+                        continue
+                    chosen = (m, reasons)
+                    break
+            if chosen is None:
+                # 额度内没有可选的了，取剩余里最便宜的一份补齐
+                rest = [x for x in pool if x[1]["code"] not in used]
+                if not rest:
+                    break
+                cheapest = min(rest, key=lambda x: float(x[1]["price"]))
+                chosen = (cheapest[1], cheapest[2])
+            m, reasons = chosen
+            used.add(m["code"])
+            cats.add(m["category"])
+            picks.append((m, reasons))
+
+        if len(picks) < units:
+            continue
+
+        items = [m for m, _ in picks]
+        priced = compare(items, coupons, channel=channel, slot=wish.meal_slot, delivery_fee=fee, units=1)
+        payable = priced["official"]["payable"]
+        if payable > budget + 0.01:
+            continue
+
+        plans.append(
+            {
+                "strategy": strategy,
+                "assignments": [
+                    {"no": i + 1, "meal": m, "reasons": r} for i, (m, r) in enumerate(picks)
+                ],
+                "items": items,
+                "price": priced,
+                "payable": payable,
+                "category_count": len(cats),
+                "distinct": len({m["code"] for m in items}),
+            }
+        )
+
+    plans.sort(key=lambda p: (-p["distinct"], -p["category_count"], p["payable"]))
+    return plans[:limit]
+
+
 if __name__ == "__main__":
     from wish_engine import parse_wish
 

@@ -87,6 +87,9 @@ TEMPLATE = """<!DOCTYPE html>
   .cand .nums{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--ink2)}
   .cand .nums b{color:var(--ink);font-variant-numeric:tabular-nums}
   .cand .why{font-size:12.5px;color:var(--ink3);margin-top:8px}
+  .party{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:5px}
+  .party li{font-size:14px;color:var(--ink);display:flex;gap:9px;align-items:baseline}
+  .party li b{color:var(--ink3);font-weight:600;font-size:12px;min-width:13px}
   .delta{color:var(--red);font-weight:600}
 
   .compare{
@@ -193,7 +196,9 @@ TEMPLATE = """<!DOCTYPE html>
 const DATA = __DATA__;
 const SLOT = {breakfast:"早餐", lunch:"午餐", dinner:"晚餐", latenight:"夜宵"};
 const SRC = {explicit:"你说的", inferred:"我推断的", default:"我替你定的"};
-let cur = 0, active = 0;
+const _h = parseInt((location.hash || "").replace("#c", ""), 10);
+let cur = (!isNaN(_h) && _h >= 0 && _h < DATA.cases.length) ? _h : 0;
+let active = 0;
 
 function money(n){ return Number(n).toFixed(2); }
 function el(id){ return document.getElementById(id); }
@@ -239,12 +244,17 @@ function render(){
     const div = document.createElement("div");
     div.className = "cand";
     div.dataset.active = (i === active) ? "true" : "false";
-    div.innerHTML = `
+    const isParty = cd.codes && cd.item_count !== 1 && cd.codes.length >= 2 && cd.unit_count === cd.codes.length;
+    const head = `
       <div class="top">
         <span class="rank">${i+1}</span>
-        <span class="name">${cd.name}</span>
+        <span class="name">${isParty ? cd.unit_count + " 个人，每人一份不同的" : cd.name}</span>
         <span class="pay">${money(cd.payable)}<small>元 实付</small></span>
-      </div>
+      </div>`;
+    const body = isParty
+      ? `<ul class="party">${cd.items.map((n, j) => `<li><b>${j+1}</b>${n}</li>`).join("")}</ul>`
+      : "";
+    div.innerHTML = head + body + `
       <div class="nums">
         <span>口算 <b>${money(d.naive.payable)}</b></span>
         <span>差 <b class="delta">${d.gap > 0 ? "+" : ""}${money(d.gap)}</b></span>
@@ -319,11 +329,12 @@ if __name__ == "__main__":
     import sys
 
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from planner import build_candidates, load_snapshot
+    from planner import build_candidates, build_party_plan, load_snapshot
     from wish_engine import parse_wish
 
     DEMO = [
         "今天被领导骂了一顿，想吃点能治愈的，别超过30块",
+        "周末家里四个人吃饭，随便，人均50以内",
         "明天要带三个同事吃饭，我不想显得抠，也不想超预算",
         "减肥第三周，馋得不行，给我找个能骗过自己的",
         "加班到现在，很饿，想吃饱一点，不吃辣",
@@ -334,7 +345,25 @@ if __name__ == "__main__":
     cases = []
     for t in DEMO:
         w = parse_wish(t)
-        cases.append({"wish": w.to_dict(), "candidates": [c.as_dict() for c in build_candidates(w, snap, 3)]})
+        if w.people >= 2:
+            plans = build_party_plan(w, snap, limit=2)
+            flat = []
+            if plans:
+                b = plans[0]
+                flat = [{
+                    "name": f"{w.people} 人分工：" + " / ".join(a["meal"]["name"] for a in b["assignments"]),
+                    "items": [a["meal"]["name"] for a in b["assignments"]],
+                    "codes": [a["meal"]["code"] for a in b["assignments"]],
+                    "unit_count": w.people,
+                    "score": 0,
+                    "reasons": [f"{b['distinct']} 种不同，覆盖 {b['category_count']} 个品类，每人一份不同的"],
+                    "price": b["price"],
+                    "payable": b["payable"],
+                }]
+            cases.append({"wish": w.to_dict(), "candidates": flat})
+        else:
+            cases.append({"wish": w.to_dict(),
+                          "candidates": [c.as_dict() for c in build_candidates(w, snap, 3)]})
     out = os.path.join(sys_path_root, "docs", "index.html")
     write_html({"cases": cases, "source_note": note}, out)
     print("已生成", out)

@@ -14,7 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from planner import build_candidates, load_snapshot  # noqa: E402
+from planner import build_candidates, build_party_plan, load_snapshot  # noqa: E402
 from pricing import compare, official_price  # noqa: E402
 from wish_engine import parse_wish  # noqa: E402
 
@@ -88,6 +88,23 @@ check("每个候选都有理由", all(c.reasons for c in cands))
 w_low = parse_wish("想吃麦当劳，别超过5块")
 low = build_candidates(w_low, snap, limit=3)
 check("超低预算返回空而不是硬凑", len(low) == 0, str(len(low)))
+
+# ---------------------------------------------------------------- 多人分工
+
+w4 = parse_wish("周末家里四个人吃饭，随便，人均50以内")
+check("人均预算 × 人数 换算成总预算", abs(w4.budget - 200) < 0.01, str(w4.budget))
+check("识别「随便」", w4.undecided is True, str(w4.undecided))
+
+plan = build_party_plan(w4)
+check("能给出分工方案", len(plan) > 0, str(len(plan)))
+if plan:
+    first = plan[0]
+    check("每人一份且不重复", first["distinct"] == w4.people, str(first["distinct"]))
+    check("分工方案不超总预算", first["payable"] <= w4.budget + 0.01,
+          f'{first["payable"]} > {w4.budget}')
+    check("每人都有主食，纯饮料不占名额",
+          all(a["meal"]["category"] != "饮料" for a in first["assignments"]),
+          str([a["meal"]["category"] for a in first["assignments"]]))
 
 # ---------------------------------------------------------------- 汇总
 
