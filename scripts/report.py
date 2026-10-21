@@ -15,6 +15,8 @@ TEMPLATE = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>许愿式点餐 · 你说愿望，它报价格</title>
+<link rel="icon" type="image/png" href="logo-32.png">
+<link rel="apple-touch-icon" href="logo.png">
 <style>
   :root{
     --ink:#17171a; --ink2:#5b5b63; --ink3:#8e8e96;
