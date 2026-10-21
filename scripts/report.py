@@ -144,7 +144,7 @@ TEMPLATE = """<!DOCTYPE html>
 <div class="wrap">
   <header>
     <div class="kicker">许愿式点餐</div>
-    <h1>你只管许愿，AI 帮你点餐</h1>
+    <h1>你只管许愿，AI 替你点餐</h1>
     <p class="sub">说一句就够：不用看活动、不用看菜单，预算、套餐、优惠券全部搞定，你只管享受美味。</p>
   </header>
 
