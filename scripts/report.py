@@ -144,12 +144,12 @@ TEMPLATE = """<!DOCTYPE html>
 <div class="wrap">
   <header>
     <div class="kicker">许愿式点餐</div>
-    <h1>你只管许愿，AI 来帮你点餐</h1>
-    <p class="sub">说一句就够：预算、套餐、优惠券全部搞定，不用填预算表，不用在两张券之间做算术。</p>
+    <h1>你只管许愿，AI 帮你点餐</h1>
+    <p class="sub">说一句就够：不用看活动、不用看菜单，预算、套餐、优惠券全部搞定，你只管享受美味。</p>
   </header>
 
   <div class="thesis">
-    钱怎么算的也不藏：每一单算两遍，一遍是模型式的口算，一遍是官方核价。差额直接摆出来。
+    <b>不花一分冤枉钱。</b>钱是怎么花的、怎么省的，一目了然。
   </div>
 
   <div class="switcher" id="switcher"></div>
