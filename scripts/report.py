@@ -37,7 +37,7 @@ TEMPLATE = """<!DOCTYPE html>
   .wrap{max-width:760px;margin:0 auto;padding:40px 22px 72px}
   header{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:26px}
   .kicker{font-size:12px;letter-spacing:.14em;color:var(--red);font-weight:600;text-transform:uppercase}
-  h1{font-size:30px;line-height:1.28;margin:10px 0 8px;letter-spacing:-.01em}
+  h1{font-size:34px;line-height:1.24;margin:10px 0 8px;letter-spacing:-.01em}
   .sub{color:var(--ink2);font-size:15px;margin:0}
   .thesis{
     margin:22px 0 26px;padding:16px 18px;border-left:3px solid var(--red);
@@ -141,13 +141,12 @@ TEMPLATE = """<!DOCTYPE html>
 <div class="wrap">
   <header>
     <div class="kicker">许愿式点餐</div>
-    <h1>你说一句愿望，它交一份付得起的订单</h1>
-    <p class="sub">不用选套餐、不用填预算表、不用在两张券之间做算术。</p>
+    <h1>你许愿，AI 来实现</h1>
+    <p class="sub">说一句就够，不用选套餐、不用填预算表、不用在两张券之间做算术。</p>
   </header>
 
   <div class="thesis">
-    AI 可以替你许愿，但<b>不能替你算钱</b>。<br>
-    所以每一单的账都算两遍：一遍是模型式的口算，一遍是官方核价。
+    钱怎么算的也不藏：每一单算两遍，一遍是模型式的口算，一遍是官方核价。差额直接摆出来。
   </div>
 
   <div class="switcher" id="switcher"></div>
