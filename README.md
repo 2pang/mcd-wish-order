@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/logo.png" alt="许愿式点餐" width="104">
+  <img src="docs/logo.png" alt="麦愿单" width="104">
 </p>
 
-# 许愿式点餐 · mcd-wish-order
+# 麦愿单 · 许愿式点餐
 
 **你只管许愿，AI 替你点餐。**
 
@@ -76,7 +76,7 @@ AI 式口算           14.00 元   扣 15.00
 
 ## 概念设计
 
-![许愿式点餐概念设计](docs/concept-design.png)
+![麦愿单概念设计](docs/concept-design.png)
 
 *图 1：左侧为界面从上到下的四层结构（输入 / 拆解 / 方案 / 账单），右侧为四步交互流程，标出了人的介入只出现在首尾两端；底部为五类典型场景。*
 
@@ -172,7 +172,7 @@ AI 擅长把「我 emo 了」翻译成「预算 30、单人、偏甜热食」，
 
 ### 图标
 
-<img src="docs/logo.png" alt="许愿式点餐图标" width="88">
+<img src="docs/logo.png" alt="麦愿单图标" width="88">
 
 一张带锯齿边的小票，右上角压着一颗四角星。小票是账单，星是许愿：**愿望落在账单上**，就是这件作品的全部。
 
@@ -251,7 +251,7 @@ export MCD_MCP_TOKEN="你的 token"     # Windows: set MCD_MCP_TOKEN=...
 无需安装任何第三方依赖，Python 3.9+ 即可（本仓库只用标准库）。
 
 ```bash
-git clone <本仓库地址>
+git clone https://github.com/2pang/mcd-wish-order.git
 cd mcd-wish-order
 
 # 跑内置示例（不需要 Token）

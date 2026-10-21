@@ -14,7 +14,7 @@ TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>许愿式点餐 · 你说愿望，它报价格</title>
+<title>麦愿单 · 你只管许愿，AI 替你点餐</title>
 <link rel="icon" type="image/png" href="logo-32.png">
 <link rel="apple-touch-icon" href="logo.png">
 <style>
@@ -143,7 +143,7 @@ TEMPLATE = """<!DOCTYPE html>
 <body>
 <div class="wrap">
   <header>
-    <div class="kicker">许愿式点餐</div>
+    <div class="kicker">麦愿单 · 许愿式点餐</div>
     <h1>你只管许愿，AI 替你点餐</h1>
     <p class="sub">说一句就够：不用看活动、不用看菜单，预算、套餐、优惠券全部搞定，你只管享受美味。</p>
   </header>
