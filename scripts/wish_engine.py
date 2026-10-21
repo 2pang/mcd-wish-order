@@ -29,7 +29,8 @@ MOOD_TO_TASTE = {
     "被骂": ["sweet", "comfort"],
     "委屈": ["sweet", "comfort"],
     "累": ["comfort", "caffeine"],
-    "加班": ["caffeine", "filling"],
+    "加班": ["filling"],
+    "熬夜": ["caffeine", "filling"],
     "奖励": ["beef", "large", "dessert"],
     "犒劳": ["beef", "large", "dessert"],
     "发工资": ["beef", "large", "dessert"],
@@ -79,7 +80,7 @@ AVOID_PATTERNS = {
 CN_NUM = {"一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9, "十": 10}
 
 # 每人预算的兜底默认值（元）。用于用户没说钱、只说了人数或情绪的场合。
-DEFAULT_BUDGET_PER_HEAD = {"breakfast": 18, "lunch": 32, "dinner": 36, "latenight": 28}
+DEFAULT_BUDGET_PER_HEAD = {"breakfast": 25, "lunch": 55, "dinner": 60, "latenight": 45}
 
 
 SLOT_CN = {"breakfast": "早餐", "lunch": "午餐", "dinner": "晚餐", "latenight": "夜宵"}

@@ -25,7 +25,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from mcd_client import McpClient, McpError  # noqa: E402
-from planner import build_candidates, load_snapshot  # noqa: E402
+from planner import build_candidates, is_heavy, load_snapshot  # noqa: E402
 from pricing import compare  # noqa: E402
 from wish_engine import SLOT_CN, parse_wish  # noqa: E402
 
@@ -49,7 +49,7 @@ DEFAULT_CASES = [
 RULE = "─" * 62
 
 
-def render(wish, cands, live_note: str = "") -> str:
+def render(wish, cands, live_note: str = "", official: dict | None = None) -> str:
     """把一次许愿的完整过程排成可读、可截图的文本。"""
     lines: list[str] = []
     lines.append(RULE)
@@ -123,36 +123,67 @@ def render(wish, cands, live_note: str = "") -> str:
     else:
         lines.append("      这一次两种算法结果一致。口算不一定错，错的时候你看不出来。")
     lines.append("")
+
+    # 有真实接口就给官方答案，让本地实现自己认账
+    if official is not None:
+        if official.get("error"):
+            lines.append(f"  官方接口核价失败：{official['error']}")
+        else:
+            local = p["official"]["payable"]
+            same = abs(official["payable"] - local) < 0.01
+            lines.append(
+                f"  官方接口实调      {official['payable']:>8.2f} 元"
+                f"   （calculate-price 返回 {official['raw_cent']} 分）"
+            )
+            lines.append(
+                f"  {'与本地口径一致' if same else '与本地口径不一致，错在本地实现'}"
+                f"（本地 {local:.2f} 元）"
+            )
+        lines.append("")
+
+    # 做不到就直说：低卡诉求下若最接近的方案仍含炸物，不假装它是减肥餐
+    if "lowcal" in wish.taste:
+        bad = [i["name"] for i in best.items if is_heavy(i)]
+        if bad:
+            lines.append(f"  说明：这个门店没有真正低卡的组合，给出了最接近的。仍含 {('、'.join(bad))}。")
+            lines.append("")
     if live_note:
         lines.append(f"  数据来源：{live_note}")
         lines.append("")
     return "\n".join(lines)
 
 
-def run_live(wish_text: str, token: str | None = None) -> str:
-    """走真实 MCP：拉门店、菜单、券，再用真实菜单替换快照。
+def official_check(client: McpClient, snap: dict, items: list[dict], units: int) -> dict | None:
+    """拿 calculate-price 的真实返回，与本地的 official_price 对拍。
 
-    这里只做「取数」这一层，规划与核价仍在本地完成，
-    因为候选组合的枚举需要确定性，交给模型会引入不该有的随机性。
+    这是本作品的自证机制：本地实现对券规则的理解对不对，不由作者声明，
+    由官方接口给答案。两者不一致时，错的一定是本地实现。
     """
-    client = McpClient(token)
-    tools = client.list_tools()
-    names = [t.get("name") for t in tools]
-    required = ["query-meals", "calculate-price"]
-    missing = [r for r in required if r not in names]
-    if missing:
-        raise McpError(f"当前 MCP 缺少必需工具：{missing}", code="TOOL_MISSING")
-    data = client.call("query-meals", {})
-    return f"真实 MCP（{len(names)} 个工具可用，query-meals 返回 {_count_meals(data)} 条餐品）"
-
-
-def _count_meals(data) -> int:
-    if isinstance(data, dict):
-        for key in ("meals", "data", "items", "list"):
-            v = data.get(key)
-            if isinstance(v, list):
-                return len(v)
-    return 0
+    store_code = (snap.get("store") or {}).get("code")
+    if not store_code:
+        return None
+    payload_items = [{"productCode": i["code"], "quantity": units} for i in items]
+    try:
+        resp = client.call(
+            "calculate-price",
+            {"storeCode": store_code, "orderType": 1, "beType": 1, "items": payload_items},
+        )
+    except McpError as exc:
+        return {"error": f"[{exc.code}] {exc}"}
+    if not resp.get("success"):
+        return {"error": resp.get("message") or "calculate-price 返回失败"}
+    data = resp.get("data") or {}
+    cent = data.get("price")
+    if cent is None:
+        return {"error": "返回里没有 price 字段"}
+    # 关键：calculate-price 的金额单位是「分」
+    return {
+        "payable": round(float(cent) / 100.0, 2),
+        "raw_cent": cent,
+        "product_list": data.get("productList") or [],
+        "take_way": data.get("takeWayList") or [],
+        "discount_cent": data.get("discount", 0),
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -184,19 +215,27 @@ def main(argv: list[str] | None = None) -> int:
 
     snap = load_snapshot()
     live_note = ""
+    client = None
     if args.live:
         try:
-            live_note = run_live(" ".join(texts), args.token)
+            client = McpClient(args.token)
+            probe = client.probe()
+            live_note = f"真实 MCP 已连接（{probe['tool_count']} 个工具可用）"
         except McpError as exc:
-            live_note = f"真实调用失败（{exc.code}），本次用示例快照"
+            live_note = f"真实调用失败（{exc.code}），本次用快照数据"
             print(f"提示：{exc}\n", file=sys.stderr)
+            client = None
 
     results = []
     for text in texts:
         wish = parse_wish(text)
         cands = build_candidates(wish, snap, limit=3)
         results.append((wish, cands))
-        print(render(wish, cands, live_note))
+        official = None
+        if client and cands:
+            best = cands[0]
+            official = official_check(client, snap, best.items, max(wish.people, 1))
+        print(render(wish, cands, live_note, official))
 
     if args.json or args.html:
         payload = {
@@ -212,8 +251,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps(payload, ensure_ascii=False, indent=2))
         if args.html:
-            from report import write_html
+            from report import source_note, write_html
 
+            payload["source_note"] = source_note(snap)
             write_html(payload, args.html)
             print(f"已生成：{args.html}")
 

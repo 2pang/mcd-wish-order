@@ -1,0 +1,737 @@
+{
+  "meta": {
+    "source": "captured",
+    "captured_at": "2026-10-21 11:02",
+    "note": "菜单与价格来自麦当劳 MCP 的 query-meals 真实返回（到店自取场景）。券池部分为结构对齐的示例数据：测试账号券包为空，无法取得真实券。price 单位为元，由 query-meals 的 currentPrice 直接解析；注意 calculate-price 返回的金额单位是分，两者相差 100 倍。",
+    "store_code": "1950139",
+    "store_name": "麦当劳北京西客站南候车室餐厅",
+    "business_hours": "05:00-22:00",
+    "meal_count": 48,
+    "category_count": 4
+  },
+  "store": {
+    "code": "1950139",
+    "name": "麦当劳北京西客站南候车室餐厅",
+    "available_slots": [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "latenight"
+    ]
+  },
+  "meals": [
+    {
+      "code": "9900004064",
+      "name": "精选单人餐三件套",
+      "category": "套餐",
+      "price": 52.5,
+      "original_price": 52.5,
+      "full_meal": true,
+      "tags": [
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900015730",
+      "name": "BFF四宫格小食盘",
+      "category": "小食",
+      "price": 61.5,
+      "original_price": 61.5,
+      "full_meal": true,
+      "tags": [
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900006332",
+      "name": "薄皮V翅双拼十翅",
+      "category": "小食",
+      "price": 61.0,
+      "original_price": 61.0,
+      "full_meal": true,
+      "tags": [
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005451",
+      "name": "麦辣鸡翅4块套餐",
+      "category": "小食",
+      "price": 55.0,
+      "original_price": 55.0,
+      "full_meal": true,
+      "tags": [
+        "spicy",
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900004835",
+      "name": "麦乐鸡套餐",
+      "category": "小食",
+      "price": 40.5,
+      "original_price": 40.5,
+      "full_meal": true,
+      "tags": [
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900013732",
+      "name": "经典麦旋风",
+      "category": "小食",
+      "price": 16.5,
+      "original_price": 16.5,
+      "full_meal": false,
+      "tags": [
+        "dessert",
+        "sweet"
+      ]
+    },
+    {
+      "code": "520445",
+      "name": "薄皮焦香V翅",
+      "category": "小食",
+      "price": 16.5,
+      "original_price": 16.5,
+      "full_meal": false,
+      "tags": [
+        "chicken"
+      ]
+    },
+    {
+      "code": "9900005432",
+      "name": "麦麦脆汁鸡1块",
+      "category": "小食",
+      "price": 16.0,
+      "original_price": 16.0,
+      "full_meal": false,
+      "tags": [
+        "chicken"
+      ]
+    },
+    {
+      "code": "1700",
+      "name": "麦辣鸡翅",
+      "category": "小食",
+      "price": 15.5,
+      "original_price": 15.5,
+      "full_meal": false,
+      "tags": [
+        "spicy",
+        "chicken"
+      ]
+    },
+    {
+      "code": "1401",
+      "name": "麦乐鸡",
+      "category": "小食",
+      "price": 15.5,
+      "original_price": 15.5,
+      "full_meal": false,
+      "tags": [
+        "chicken"
+      ]
+    },
+    {
+      "code": "521156",
+      "name": "那么大鸡排（椒盐风味）",
+      "category": "小食",
+      "price": 15.0,
+      "original_price": 15.0,
+      "full_meal": false,
+      "tags": [
+        "chicken"
+      ]
+    },
+    {
+      "code": "4810",
+      "name": "薯条",
+      "category": "小食",
+      "price": 14.5,
+      "original_price": 14.5,
+      "full_meal": false,
+      "tags": [
+        "fries"
+      ]
+    },
+    {
+      "code": "9900008745",
+      "name": "新地",
+      "category": "小食",
+      "price": 14.5,
+      "original_price": 14.5,
+      "full_meal": false,
+      "tags": [
+        "dessert",
+        "sweet"
+      ]
+    },
+    {
+      "code": "9900008752",
+      "name": "派",
+      "category": "小食",
+      "price": 9.5,
+      "original_price": 9.5,
+      "full_meal": false,
+      "tags": [
+        "dessert",
+        "sweet"
+      ]
+    },
+    {
+      "code": "9900005428",
+      "name": "培根安格斯厚牛堡三件套",
+      "category": "汉堡",
+      "price": 63.5,
+      "original_price": 63.5,
+      "full_meal": true,
+      "tags": [
+        "beef",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005411",
+      "name": "不素之霸双层牛堡三件套",
+      "category": "汉堡",
+      "price": 55.0,
+      "original_price": 55.0,
+      "full_meal": true,
+      "tags": [
+        "beef",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005466",
+      "name": "巨无霸三件套",
+      "category": "汉堡",
+      "price": 54.5,
+      "original_price": 54.5,
+      "full_meal": true,
+      "tags": [
+        "beef",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005413",
+      "name": "双层深海鳕鱼堡三件套",
+      "category": "汉堡",
+      "price": 53.5,
+      "original_price": 53.5,
+      "full_meal": true,
+      "tags": [
+        "fish",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900016073",
+      "name": "龙焰鸡腿堡三件套",
+      "category": "汉堡",
+      "price": 53.0,
+      "original_price": 53.0,
+      "full_meal": true,
+      "tags": [
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005462",
+      "name": "板烧鸡腿堡三件套",
+      "category": "汉堡",
+      "price": 52.5,
+      "original_price": 52.5,
+      "full_meal": true,
+      "tags": [
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005460",
+      "name": "麦香鱼套餐",
+      "category": "汉堡",
+      "price": 50.5,
+      "original_price": 50.5,
+      "full_meal": true,
+      "tags": [
+        "fish",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005464",
+      "name": "双层吉士汉堡套餐",
+      "category": "汉堡",
+      "price": 50.0,
+      "original_price": 50.0,
+      "full_meal": true,
+      "tags": [
+        "beef",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005456",
+      "name": "麦辣鸡腿汉堡三件套",
+      "category": "汉堡",
+      "price": 49.0,
+      "original_price": 49.0,
+      "full_meal": true,
+      "tags": [
+        "spicy",
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005453",
+      "name": "麦香鸡套餐",
+      "category": "汉堡",
+      "price": 45.0,
+      "original_price": 45.0,
+      "full_meal": true,
+      "tags": [
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "511781",
+      "name": "培根安格斯厚牛堡",
+      "category": "汉堡",
+      "price": 39.0,
+      "original_price": 39.0,
+      "full_meal": false,
+      "tags": [
+        "beef",
+        "staple"
+      ]
+    },
+    {
+      "code": "4648",
+      "name": "不素之霸双层牛堡",
+      "category": "汉堡",
+      "price": 29.5,
+      "original_price": 29.5,
+      "full_meal": false,
+      "tags": [
+        "beef",
+        "staple"
+      ]
+    },
+    {
+      "code": "1100",
+      "name": "巨无霸",
+      "category": "汉堡",
+      "price": 29.0,
+      "original_price": 29.0,
+      "full_meal": false,
+      "tags": [
+        "beef"
+      ]
+    },
+    {
+      "code": "9900003586",
+      "name": "双层深海鳕鱼堡",
+      "category": "汉堡",
+      "price": 28.0,
+      "original_price": 28.0,
+      "full_meal": false,
+      "tags": [
+        "fish",
+        "staple"
+      ]
+    },
+    {
+      "code": "521952",
+      "name": "龙焰鸡腿堡",
+      "category": "汉堡",
+      "price": 27.5,
+      "original_price": 27.5,
+      "full_meal": false,
+      "tags": [
+        "chicken",
+        "staple"
+      ]
+    },
+    {
+      "code": "9900008746",
+      "name": "鸡肉堡单品精选",
+      "category": "汉堡",
+      "price": 27.0,
+      "original_price": 27.0,
+      "full_meal": false,
+      "tags": [
+        "staple"
+      ]
+    },
+    {
+      "code": "1406",
+      "name": "板烧鸡腿堡",
+      "category": "汉堡",
+      "price": 27.0,
+      "original_price": 27.0,
+      "full_meal": false,
+      "tags": [
+        "chicken",
+        "staple"
+      ]
+    },
+    {
+      "code": "1120",
+      "name": "双层吉士汉堡",
+      "category": "汉堡",
+      "price": 26.5,
+      "original_price": 26.5,
+      "full_meal": false,
+      "tags": [
+        "beef",
+        "staple"
+      ]
+    },
+    {
+      "code": "1440",
+      "name": "麦辣鸡腿汉堡",
+      "category": "汉堡",
+      "price": 26.0,
+      "original_price": 26.0,
+      "full_meal": false,
+      "tags": [
+        "spicy",
+        "chicken",
+        "staple"
+      ]
+    },
+    {
+      "code": "1600",
+      "name": "麦香鱼",
+      "category": "汉堡",
+      "price": 25.0,
+      "original_price": 25.0,
+      "full_meal": false,
+      "tags": [
+        "fish"
+      ]
+    },
+    {
+      "code": "1450",
+      "name": "麦香鸡",
+      "category": "汉堡",
+      "price": 19.5,
+      "original_price": 19.5,
+      "full_meal": false,
+      "tags": [
+        "chicken"
+      ]
+    },
+    {
+      "code": "510479",
+      "name": "燕麦奶铁",
+      "category": "饮料",
+      "price": 27.0,
+      "original_price": 27.0,
+      "full_meal": false,
+      "tags": [
+        "light",
+        "lowcal",
+        "drink"
+      ]
+    },
+    {
+      "code": "510489",
+      "name": "燕麦奶",
+      "category": "饮料",
+      "price": 25.0,
+      "original_price": 25.0,
+      "full_meal": false,
+      "tags": [
+        "light",
+        "lowcal",
+        "drink"
+      ]
+    },
+    {
+      "code": "507387",
+      "name": "卡布奇诺",
+      "category": "饮料",
+      "price": 25.0,
+      "original_price": 25.0,
+      "full_meal": false,
+      "tags": [
+        "caffeine",
+        "drink"
+      ]
+    },
+    {
+      "code": "507409",
+      "name": "麦咖啡™奶铁",
+      "category": "饮料",
+      "price": 25.0,
+      "original_price": 25.0,
+      "full_meal": false,
+      "tags": [
+        "caffeine",
+        "drink"
+      ]
+    },
+    {
+      "code": "507394",
+      "name": "牛奶",
+      "category": "饮料",
+      "price": 23.0,
+      "original_price": 23.0,
+      "full_meal": false,
+      "tags": [
+        "drink"
+      ]
+    },
+    {
+      "code": "507411",
+      "name": "麦咖啡™美式",
+      "category": "饮料",
+      "price": 23.0,
+      "original_price": 23.0,
+      "full_meal": false,
+      "tags": [
+        "light",
+        "lowcal",
+        "caffeine",
+        "drink"
+      ]
+    },
+    {
+      "code": "2430",
+      "name": "【美汁源】“黄金橙橙”",
+      "category": "饮料",
+      "price": 15.0,
+      "original_price": 15.0,
+      "full_meal": false,
+      "tags": [
+        "drink"
+      ]
+    },
+    {
+      "code": "521817",
+      "name": "【美汁源】“多汁柠柠”",
+      "category": "饮料",
+      "price": 13.5,
+      "original_price": 13.5,
+      "full_meal": false,
+      "tags": [
+        "drink"
+      ]
+    },
+    {
+      "code": "3755",
+      "name": "纯牛奶(盒装)",
+      "category": "饮料",
+      "price": 12.5,
+      "original_price": 12.5,
+      "full_meal": false,
+      "tags": [
+        "light",
+        "lowcal",
+        "drink"
+      ]
+    },
+    {
+      "code": "3505",
+      "name": "锡兰红茶",
+      "category": "饮料",
+      "price": 12.5,
+      "original_price": 12.5,
+      "full_meal": false,
+      "tags": [
+        "light",
+        "lowcal",
+        "drink"
+      ]
+    },
+    {
+      "code": "3060",
+      "name": "雪碧",
+      "category": "饮料",
+      "price": 11.5,
+      "original_price": 11.5,
+      "full_meal": false,
+      "tags": [
+        "drink"
+      ]
+    },
+    {
+      "code": "515281",
+      "name": "阳光柠檬红茶",
+      "category": "饮料",
+      "price": 11.5,
+      "original_price": 11.5,
+      "full_meal": false,
+      "tags": [
+        "light",
+        "lowcal",
+        "drink"
+      ]
+    },
+    {
+      "code": "9900008751",
+      "name": "可乐",
+      "category": "饮料",
+      "price": 11.5,
+      "original_price": 11.5,
+      "full_meal": false,
+      "tags": [
+        "drink"
+      ]
+    }
+  ],
+  "combos": [],
+  "coupons": [
+    {
+      "id": "CP01",
+      "name": "满 30 减 6",
+      "type": "threshold",
+      "threshold": 30,
+      "off": 6,
+      "stackable": false,
+      "channel": "any",
+      "slot": "any",
+      "note": "整单金额需达到 30 元"
+    },
+    {
+      "id": "CP02",
+      "name": "满 50 减 12",
+      "type": "threshold",
+      "threshold": 50,
+      "off": 12,
+      "stackable": false,
+      "channel": "any",
+      "slot": "any",
+      "note": "整单金额需达到 50 元"
+    },
+    {
+      "id": "CP03",
+      "name": "满 70 减 15",
+      "type": "threshold",
+      "threshold": 70,
+      "off": 15,
+      "stackable": false,
+      "channel": "any",
+      "slot": "any",
+      "note": "多人场景常见档位"
+    },
+    {
+      "id": "CP04",
+      "name": "小食第二份半价",
+      "type": "second_half",
+      "category": "小食",
+      "threshold": 0,
+      "off": 0,
+      "stackable": false,
+      "channel": "pickup",
+      "slot": "any",
+      "note": "仅到店可用，需两件小食"
+    },
+    {
+      "id": "CP05",
+      "name": "早餐满 15 减 5",
+      "type": "threshold",
+      "threshold": 15,
+      "off": 5,
+      "stackable": false,
+      "channel": "any",
+      "slot": "breakfast",
+      "note": "仅早餐时段可用"
+    },
+    {
+      "id": "CP06",
+      "name": "甜品第二份 1 元",
+      "type": "second_fixed",
+      "category": "甜品",
+      "threshold": 0,
+      "off": 0,
+      "fixed_price": 1.0,
+      "stackable": false,
+      "channel": "pickup",
+      "slot": "any",
+      "note": "仅到店可用，需两件甜品"
+    },
+    {
+      "id": "CP07",
+      "name": "满 40 减 8（外送专享）",
+      "type": "threshold",
+      "threshold": 40,
+      "off": 8,
+      "stackable": false,
+      "channel": "delivery",
+      "slot": "any",
+      "note": "仅麦乐送可用，另计配送费"
+    }
+  ],
+  "coupons_source": "demo",
+  "delivery_fee": 9.0,
+  "channel_default": "pickup",
+  "_raw_categories": [
+    {
+      "name": "人气热卖",
+      "count": 2
+    },
+    {
+      "name": "精选单人餐",
+      "count": 1
+    },
+    {
+      "name": "鸡肉汉堡/卷",
+      "count": 9
+    },
+    {
+      "name": "小食拼盘/多人餐",
+      "count": 2
+    },
+    {
+      "name": "巨无霸牛鱼肉堡",
+      "count": 10
+    },
+    {
+      "name": "安格斯MAX厚牛堡",
+      "count": 2
+    },
+    {
+      "name": "炸鸡",
+      "count": 7
+    },
+    {
+      "name": "小食甜品/其他",
+      "count": 5
+    },
+    {
+      "name": "麦咖啡™",
+      "count": 6
+    },
+    {
+      "name": "饮品",
+      "count": 7
+    }
+  ]
+}

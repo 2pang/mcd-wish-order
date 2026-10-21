@@ -46,9 +46,20 @@ class Candidate:
         }
 
 
-def load_snapshot(name: str = "snapshot_menu.json") -> dict:
-    with open(os.path.join(DATA_DIR, name), encoding="utf-8") as f:
-        return json.load(f)
+SNAPSHOT_CANDIDATES = ("snapshot_real.json", "snapshot_menu.json")
+
+
+def load_snapshot(name: str | None = None) -> dict:
+    """优先读真实抓取的快照，没有则退回示例快照。"""
+    if name:
+        with open(os.path.join(DATA_DIR, name), encoding="utf-8") as f:
+            return json.load(f)
+    for cand in SNAPSHOT_CANDIDATES:
+        path = os.path.join(DATA_DIR, cand)
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
+    raise FileNotFoundError("data/ 下找不到任何快照文件")
 
 
 def _meal_index(snap: dict) -> dict:
@@ -60,6 +71,24 @@ def _expand(combo: dict, idx: dict) -> list[dict]:
 
 
 # ------------------------------------------------------------------ 打分
+
+
+HEAVY_TAGS = {"dessert", "sweet", "fries"}
+
+
+def is_heavy(item: dict) -> bool:
+    """判断一项是不是「减肥场景里的硬伤」。
+
+    不只是甜品和薯条：小食里的炸鸡、鸡翅、鸡排同样算。
+    区分烤与炸靠品类（小食 + chicken）而不是靠食材本身，
+    因为板烧鸡腿堡这类主食是烤的，不能一刀切。
+    """
+    tags = set(item.get("tags", []))
+    if tags & HEAVY_TAGS:
+        return True
+    if item.get("category") == "小食" and ("chicken" in tags or "fries" in tags):
+        return True
+    return False
 
 
 def _score(items: list[dict], wish, budget: float, payable: float) -> tuple[float, list[str]]:
@@ -121,11 +150,29 @@ def _score(items: list[dict], wish, budget: float, payable: float) -> tuple[floa
             score += 3.0
             reasons.append("带了甜品，对应你说的那口气")
 
-    # 低卡诉求：热量越低越好
+    # 低卡诉求：有营养数据按热量算，没有就按标签倾向算
     if "lowcal" in wish.taste:
-        kcal = sum(i.get("kcal", 0) for i in items)
-        score += max(0.0, (900 - kcal) / 150)
-        reasons.append(f"总热量约 {kcal} 大卡")
+        # 负向约束优先：炸物与甜品是「减肥」场景的硬伤，不能靠一杯低卡饮料抵消
+        heavy_hits = sum(1 for i in items if is_heavy(i))
+        if heavy_hits:
+            score -= heavy_hits * 5.0
+            reasons.append(f"含 {heavy_hits} 项高热量（炸物/甜品）")
+        if any("lowcal" in i.get("tags", []) for i in items):
+            score += 3.0
+            reasons.append("带了低卡项")
+        else:
+            score -= 4.0
+        kcals = [i["kcal"] for i in items if i.get("kcal")]
+        if kcals:
+            kcal = sum(kcals)
+            score += max(0.0, (900 - kcal) / 150)
+            reasons.append(f"总热量约 {kcal} 大卡")
+
+    # 明确说「饿 / 要吃饱」时，必须含主食，纯饮料甜品不解决问题
+    if {"filling", "staple"} & set(wish.taste):
+        if not any("staple" in i.get("tags", []) for i in items):
+            score -= 6.0
+            reasons.append("没有主食，吃不饱")
 
     return score, reasons
 
@@ -137,38 +184,58 @@ def build_candidates(wish, snap: dict | None = None, limit: int = 6) -> list[Can
     snap = snap or load_snapshot()
     idx = _meal_index(snap)
     budget = wish.budget
-    coupons = snap["coupons"]
+    coupons = snap.get("coupons", [])
     channel = snap.get("channel_default", "pickup")
     fee = float(snap.get("delivery_fee", 9.0))
+    units = max(wish.people, 1)
 
     raw: list[tuple[str, list[dict], int]] = []
 
-    # 1) 套餐候选（通常最划算）
-    for combo in snap["combos"]:
-        items = _expand(combo, idx)
-        if not items:
-            continue
-        raw.append((combo["name"], items, 1))
+    # 1) 菜单里本身就是「一份完整餐」的（三件套 / 拼盘 / 套餐），单独成候选
+    for m in snap["meals"]:
+        if m.get("full_meal"):
+            raw.append((m["name"], [m], 1))
 
-    # 2) 随心配之外的单品自由组合：汉堡 + 小食 + 饮料
-    burgers = [m for m in snap["meals"] if m["category"] == "汉堡"]
-    sides = [m for m in snap["meals"] if m["category"] == "小食"]
+    # 2) 旧快照里的 combos 结构（若存在则展开），保持向后兼容
+    for combo in snap.get("combos", []):
+        items = _expand(combo, idx)
+        if items:
+            raw.append((combo["name"], items, 1))
+
+    # 3) 单品自由组合：汉堡 + 小食 + 饮料
+    burgers = [m for m in snap["meals"] if m["category"] == "汉堡" and not m.get("full_meal")]
+    sides = [m for m in snap["meals"] if m["category"] == "小食" and not m.get("full_meal")]
     drinks = [m for m in snap["meals"] if m["category"] == "饮料"]
     desserts = [m for m in snap["meals"] if m["category"] == "甜品"]
 
-    for b, s, d in itertools.product(burgers, sides, drinks):
+    # 先按单价粗筛，避免组合爆炸后再逐个核价
+    cheap_burgers = [b for b in burgers if float(b["price"]) * units <= budget]
+    cheap_sides = [s for s in sides if float(s["price"]) * units <= budget]
+    cheap_drinks = [d for d in drinks if float(d["price"]) * units <= budget]
+
+    for b, s, d in itertools.product(cheap_burgers, cheap_sides, cheap_drinks):
         picked = [b, s, d]
-        total = sum(float(i["price"]) for i in picked) * max(wish.people, 1)
-        if total > budget * 1.05:  # 明显超预算的先不生成，减少无谓计算
+        if sum(float(i["price"]) for i in picked) * units > budget * 1.1:
             continue
         raw.append((f"{b['name']} + {s['name']} + {d['name']}", picked, 1))
 
-    # 3) 小份组合：单品 + 甜品（治愈/夜宵/单人场景）
+    # 3b) 两件组合：预算紧的时候，汉堡 + 饮料或汉堡 + 小食才是真答案
+    for b, d in itertools.product(cheap_burgers, cheap_drinks):
+        picked = [b, d]
+        if sum(float(i["price"]) for i in picked) * units > budget * 1.05:
+            continue
+        raw.append((f"{b['name']} + {d['name']}", picked, 1))
+    for b, s in itertools.product(cheap_burgers, cheap_sides):
+        picked = [b, s]
+        if sum(float(i["price"]) for i in picked) * units > budget * 1.05:
+            continue
+        raw.append((f"{b['name']} + {s['name']}", picked, 1))
+
+    # 4) 小份组合：单品 + 甜品（治愈 / 单人 / 夜宵场景）
     if wish.people == 1:
-        for b, t in itertools.product(burgers + sides, desserts):
+        for b, t in itertools.product(cheap_burgers + cheap_sides, desserts):
             picked = [b, t]
-            total = sum(float(i["price"]) for i in picked)
-            if total > budget * 1.05:
+            if sum(float(i["price"]) for i in picked) > budget * 1.1:
                 continue
             raw.append((f"{b['name']} + {t['name']}", picked, 1))
 
@@ -184,7 +251,6 @@ def build_candidates(wish, snap: dict | None = None, limit: int = 6) -> list[Can
     # 核价 + 打分
     out: list[Candidate] = []
     for name, items, unit in uniq:
-        units = max(wish.people, 1)
         priced = compare(
             items, coupons, channel=channel, slot=wish.meal_slot, delivery_fee=fee, units=units
         )

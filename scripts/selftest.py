@@ -44,7 +44,8 @@ check("「很饿」不与「饿」重复计", w3.moods.count("饿") == 0, str(w3
 
 # ---------------------------------------------------------------- 核价
 
-snap = load_snapshot()
+# 用固定的示例快照跑断言，避免真实抓取的数据变化导致结果漂移
+snap = load_snapshot("snapshot_menu.json")
 idx = {m["code"]: m for m in snap["meals"]}
 items = [idx["M003"], idx["T001"]]  # 板烧 23 + 圆筒 4 = 27
 

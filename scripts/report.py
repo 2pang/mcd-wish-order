@@ -182,7 +182,7 @@ TEMPLATE = """<!DOCTYPE html>
   <div class="verdict" id="verdict"></div>
 
   <footer>
-    数据为结构对齐官方 MCP 返回的示例快照，非门店实时报价；价格与供应状态以麦当劳官方渠道为准。<br>
+    <span id="src"></span><br>
     本页面为麦当劳程序员创意开发大赛参赛作品的演示页，由参赛者独立开发，非麦当劳官方产品。<br>
     生成时间：<span id="ts"></span>
   </footer>
@@ -282,11 +282,24 @@ function render(){
 }
 
 el("ts").textContent = DATA.generated_at || "示例快照";
+if (DATA.source_note) el("src").textContent = DATA.source_note;
 render();
 </script>
 </body>
 </html>
 """
+
+
+def source_note(snap: dict) -> str:
+    """页脚的数据来源说明。有真实快照就说真的，只有示例就说示例。"""
+    meta = snap.get("meta", {})
+    if meta.get("source") == "captured":
+        return (
+            f'菜单与价格来自麦当劳 MCP 的 query-meals 真实返回（{meta.get("captured_at")} 抓取，'
+            f'门店 {meta.get("store_name")}）；券为示例数据，因测试账号券包为空。'
+            "价格以麦当劳官方渠道实时结果为准。"
+        )
+    return "数据为结构对齐官方 MCP 返回的示例快照，非门店实时报价；价格与供应状态以麦当劳官方渠道为准。"
 
 
 def write_html(payload: dict, out_path: str) -> None:
@@ -315,10 +328,12 @@ if __name__ == "__main__":
         "加班到现在，很饿，想吃饱一点，不吃辣",
     ]
     snap = load_snapshot()
+    note = source_note(snap)
+
     cases = []
     for t in DEMO:
         w = parse_wish(t)
         cases.append({"wish": w.to_dict(), "candidates": [c.as_dict() for c in build_candidates(w, snap, 3)]})
     out = os.path.join(sys_path_root, "docs", "index.html")
-    write_html({"cases": cases}, out)
+    write_html({"cases": cases, "source_note": note}, out)
     print("已生成", out)

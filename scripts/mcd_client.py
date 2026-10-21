@@ -182,30 +182,85 @@ class McpClient:
 
     @staticmethod
     def _unwrap(result: dict):
-        """把 content 数组拆成「结构化数据 + 原始文本」两部分。"""
+        """把 content 数组拆成「结构化数据 + 原始文本」两部分。
+
+        实测发现：麦当劳 MCP 的 text 内容不是纯 JSON，而是「给模型看的字段说明
+        + 一段业务 JSON + 展示要求」混排。例如：
+
+            # API Response Information
+            ## Response Structure
+            - **data**: ...
+            ---
+            {"success":true,"data":[...]}
+            ## 展示结果时...
+
+        所以不能只做 json.loads，要在整段文本里定位业务 JSON。
+        """
         texts = []
         for item in result.get("content", []) or []:
             if isinstance(item, dict) and item.get("type") == "text":
                 texts.append(item.get("text", ""))
         joined = "\n".join(t for t in texts if t)
 
-        # 尝试整体当 JSON
-        for cand in (joined, joined.strip().strip("`")):
-            if cand.startswith("{") or cand.startswith("["):
-                try:
-                    return json.loads(cand)
-                except json.JSONDecodeError:
-                    pass
+        # 1) 整段就是 JSON
+        stripped = joined.strip()
+        if stripped.startswith("{") or stripped.startswith("["):
+            try:
+                return json.loads(stripped)
+            except json.JSONDecodeError:
+                pass
 
-        # 尝试从 Markdown 代码块里抠 JSON（部分工具会把数据包在 ```json 里）
+        # 2) 从 Markdown 代码块里取
         for block in McpClient._code_blocks(joined):
             try:
                 return json.loads(block)
             except json.JSONDecodeError:
                 continue
 
-        # 兜底：返回原文，让上层自己处理
+        # 3) 在混排文本里扫描平衡的 JSON 对象，取最后一个能被解析的
+        found = McpClient._scan_json(joined)
+        if found:
+            return found[-1]
+
+        # 4) 兜底：原文交给上层
         return {"_text": joined, "_structured": False}
+
+    @staticmethod
+    def _scan_json(text: str) -> list:
+        """扫描字符串里所有平衡的 {...} 片段，返回能成功解析的那些。"""
+        out = []
+        i, n = 0, len(text)
+        while i < n:
+            if text[i] != "{":
+                i += 1
+                continue
+            depth, in_str, esc = 0, False, False
+            for j in range(i, n):
+                ch = text[j]
+                if in_str:
+                    if esc:
+                        esc = False
+                    elif ch == "\\":
+                        esc = True
+                    elif ch == '"':
+                        in_str = False
+                    continue
+                if ch == '"':
+                    in_str = True
+                elif ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        chunk = text[i : j + 1]
+                        try:
+                            out.append(json.loads(chunk))
+                        except json.JSONDecodeError:
+                            pass
+                        i = j
+                        break
+            i += 1
+        return out
 
     @staticmethod
     def _code_blocks(text: str):

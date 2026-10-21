@@ -42,26 +42,26 @@ python wish.py --probe
 
 ## 二、Tool 使用清单
 
-### 2.1 主链路（已接入）
+### 2.1 已接入（真实调用验证通过）
 
-| Tool | 用途 | 在本作品中的位置 |
+| Tool | 用途 | 在本作品中的位置 | 验证方式 |
+|---|---|---|---|
+| `tools/list` | 握手后确认工具可用性 | `--probe` 与 `--live` 的前置检查 | 实测返回 **35** 个工具，server 版本 1.0.0 |
+| `now-time-info` | 取当前时间 | 判断餐段（早餐/午餐/晚餐/夜宵），供券的时段校验使用 | 实测返回 `data.formatted` = 2026-10-21 10:58 |
+| `query-nearby-stores` | 按城市 + 关键词查门店 | 许愿后第一步：先确定「在哪吃」 | 实测返回门店列表，含 `storeCode` / `businessStatus` / `reservationTimeOptions` |
+| `query-meals` | 拉当前门店可售卖餐品 | 候选池的来源 | 实测返回 10 个分类、49 款餐品（清洗后 48 款） |
+| `calculate-price` | 按商品列表计算应付 | **官方口径核价的唯一来源**，与本地口算并排对照 | 实测返回 `price: 2900`（分），与本地实现一致 |
+
+### 2.2 已设计，未启用（需真实券或写操作）
+
+| Tool | 用途 | 未启用的原因 |
 |---|---|---|
-| `tools/list` | 握手后确认工具可用性 | `--probe` 与 `--live` 的前置检查 |
-| `query-meals` | 拉当前门店可售卖餐品（分类、编码、标签） | 替换快照中的 `meals`，提供候选池 |
-| `now-time-info` | 取当前时间 | 判断餐段（早餐 / 午餐 / 晚餐 / 夜宵），供券的时段校验使用 |
-
-### 2.2 主链路（已设计，需真实账号验证）
-
-| Tool | 用途 | 设计中的位置 |
-|---|---|---|
-| `query-nearby-stores` | 按地址查附近门店 | 许愿后第一步：先确定「在哪吃」，避免拿别家门店的菜单算价 |
-| `available-coupons` | 查可领取的麦麦省券 | 券池来源之一（可领券） |
-| `query-my-coupons` | 查已入卡包的券 | 券池来源之二（已持有券） |
-| `query-store-coupons` | 查当前门店可用券 | 券池来源之三（门店券） |
-| `query-meal-detail` | 查套餐组成与可替换项 | 套餐候选展开，以及「换小食 / 换饮料」的重算 |
-| `list-nutrition-foods` | 查餐品营养数据 | 低卡类愿望（减肥 / 控卡）的打分依据 |
-| `calculate-price` | 按商品列表 + 券计算应付 | **官方口径核价的唯一来源**，与本地口算并排对照 |
-| `create-order` | 创建订单并返回支付链接 | 用户确认后才会调用，本版本默认不启用 |
+| `available-coupons` | 查可领取的麦麦省券 | 实测返回 `null`（测试账号无券） |
+| `query-my-coupons` | 查已入卡包的券 | 实测返回 `null` |
+| `query-store-coupons` | 查当前门店可用券 | 实测返回 `[]` |
+| `query-meal-detail` | 查套餐组成与可替换项 | 需要先有稳定的套餐候选才能发挥价值 |
+| `list-nutrition-foods` | 查餐品营养数据 | 返回 TOON 格式而非 JSON，解析成本高；当前低卡判断用标签规则代替，不声称精确热量 |
+| `create-order` | 创建订单并返回支付链接 | 写操作，默认关闭，仅在用户明确确认后调用 |
 
 ### 2.3 明确未使用
 
@@ -130,7 +130,88 @@ python wish.py --probe
 
 ---
 
-## 四、字段映射
+## 四、实测参数与坑
+
+以下都是配好 Token 真调之后才发现的，官方文档未写或写得不够明确。按接入顺序排。
+
+### 4.1 金额单位：两个接口差 100 倍
+
+| 接口 | 字段 | 实测返回 | 单位 |
+|---|---|---|---|
+| `query-meals` | `currentPrice` | `"49"` | 元（字符串） |
+| `calculate-price` | `price` / `productPrice` | `4900` | 分（整数） |
+
+代码里必须显式换算：`float(data["price"]) / 100`。任何跨接口拼金额的地方都是出错点。
+
+### 4.2 `query-nearby-stores` 必须 city + keyword 同时传
+
+```json
+// 只传 city → 失败
+{"beType": 1, "searchType": 2, "city": "北京"}
+// → {"success": false, "code": 600058, "message": "城市名或者关键词不能为空"}
+
+// 两个都传 → 成功
+{"beType": 1, "searchType": 2, "city": "北京", "keyword": "北京"}
+```
+
+`searchType=1` 搜收藏餐厅（无需城市），`searchType=2` 按城市搜，`searchType=3` 按经纬度搜。
+
+### 4.3 返回体是「说明文字 + JSON + 展示要求」混排
+
+每次调用的 `content[].text` 结构：
+
+```
+# API Response Information
+## Response Structure
+- **data**: ...（字段说明）
+---
+{"success":true,"data":[...]}
+## 展示结果时，storeCode 和 beCode 必须完整展示
+```
+
+因此客户端必须先做平衡括号扫描定位业务 JSON，再 `json.loads`。直接解析整段必然失败。实现见 `mcd_client._scan_json()`。
+
+### 4.4 `query-meals` 的两段式结构
+
+- `data.categories[]`：菜单骨架，每项只有 `code` 和 `tags`（无名称、无价格）
+- `data.meals{}`：字典，key 是 `code`，value 含 `name` / `currentPrice` / `originalPrice` / `image`
+
+必须按 `code` 关联两边。只读 `categories` 会拿到一堆无意义编码，只读 `meals` 会丢失分类信息与排序。
+
+### 4.5 非食品商品混在菜单里
+
+实测返回中包含：
+
+```
+{"name": "“葱不求人“按摩捶痒痒挠", "currentPrice": "14.9"}   // 分类落在「小食甜品/其他」
+```
+
+这是周边商品，但真实落在小食分类下。不过滤会被当成合理候选推荐。`capture.py` 中的 `EXCLUDE_PAT` 负责这一步。
+
+### 4.6 `beType` 与 `orderType` 的搭配
+
+| beType | 含义 | 对应 orderType | beCode |
+|---|---|---|---|
+| 1 | 到店取餐 | 1 | 不传 |
+| 2 | 麦乐送到家 | 2 | 必传 |
+| 5 | 得来速（DT） | 1 | 必传 |
+| 6 | 企业团餐 | 2 | 必传，另需 `gmServiceCode` |
+
+本作品当前只用到 `beType=1, orderType=1`（到店自取），这是最简单且不需要 `beCode` 的场景。
+
+### 4.7 下单前还需要一个 `takeWayCode`
+
+`calculate-price` 的返回里带 `takeWayList`：
+
+```json
+[{"code":"eat-in","title":"堂食"}, {"code":"take-in-store","title":"外带"}]
+```
+
+到店场景下单时，`create-order` 的 `takeWayCode` 必须从这里取，不能自己编。
+
+---
+
+## 五、字段映射
 
 | MCP 返回字段（示例） | 本作品内部字段 | 用途 |
 |---|---|---|
@@ -148,7 +229,7 @@ python wish.py --probe
 
 ---
 
-## 五、业务价值
+## 六、业务价值
 
 对用户：
 

@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "source": "demo",
+    "note": "示例券池。测试账号的券包为空（query-store-coupons 返回 []，available-coupons 返回 null），因此无法取得真实券。这里使用结构对齐的示例券，用于演示门槛、互斥、渠道、时段四类校验逻辑。字段为本作品内部模型，不是官方返回字段的逐字复制；真实券的 couponId / couponCode 字段命名见官方文档。",
+    "aligns_with": "query-store-coupons / query-my-coupons / available-coupons 的语义"
+  },
+  "coupons": [
+    {
+      "id": "CP01",
+      "name": "满 30 减 6",
+      "type": "threshold",
+      "threshold": 30,
+      "off": 6,
+      "stackable": false,
+      "channel": "any",
+      "slot": "any",
+      "note": "整单金额需达到 30 元"
+    },
+    {
+      "id": "CP02",
+      "name": "满 50 减 12",
+      "type": "threshold",
+      "threshold": 50,
+      "off": 12,
+      "stackable": false,
+      "channel": "any",
+      "slot": "any",
+      "note": "整单金额需达到 50 元"
+    },
+    {
+      "id": "CP03",
+      "name": "满 70 减 15",
+      "type": "threshold",
+      "threshold": 70,
+      "off": 15,
+      "stackable": false,
+      "channel": "any",
+      "slot": "any",
+      "note": "多人场景常见档位"
+    },
+    {
+      "id": "CP04",
+      "name": "小食第二份半价",
+      "type": "second_half",
+      "category": "小食",
+      "threshold": 0,
+      "off": 0,
+      "stackable": false,
+      "channel": "pickup",
+      "slot": "any",
+      "note": "仅到店可用，需两件小食"
+    },
+    {
+      "id": "CP05",
+      "name": "早餐满 15 减 5",
+      "type": "threshold",
+      "threshold": 15,
+      "off": 5,
+      "stackable": false,
+      "channel": "any",
+      "slot": "breakfast",
+      "note": "仅早餐时段可用"
+    },
+    {
+      "id": "CP06",
+      "name": "甜品第二份 1 元",
+      "type": "second_fixed",
+      "category": "甜品",
+      "threshold": 0,
+      "off": 0,
+      "fixed_price": 1.0,
+      "stackable": false,
+      "channel": "pickup",
+      "slot": "any",
+      "note": "仅到店可用，需两件甜品"
+    },
+    {
+      "id": "CP07",
+      "name": "满 40 减 8（外送专享）",
+      "type": "threshold",
+      "threshold": 40,
+      "off": 8,
+      "stackable": false,
+      "channel": "delivery",
+      "slot": "any",
+      "note": "仅麦乐送可用，另计配送费"
+    }
+  ]
+}

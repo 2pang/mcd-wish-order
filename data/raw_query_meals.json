@@ -1,0 +1,78 @@
+{
+  "store": {
+    "code": "1950139",
+    "name": "麦当劳北京西客站南候车室餐厅",
+    "available_slots": [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "latenight"
+    ]
+  },
+  "meals_sample": [
+    {
+      "code": "9900004064",
+      "name": "精选单人餐三件套",
+      "category": "套餐",
+      "price": 52.5,
+      "original_price": 52.5,
+      "full_meal": true,
+      "tags": [
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900015730",
+      "name": "BFF四宫格小食盘",
+      "category": "小食",
+      "price": 61.5,
+      "original_price": 61.5,
+      "full_meal": true,
+      "tags": [
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900006332",
+      "name": "薄皮V翅双拼十翅",
+      "category": "小食",
+      "price": 61.0,
+      "original_price": 61.0,
+      "full_meal": true,
+      "tags": [
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900005451",
+      "name": "麦辣鸡翅4块套餐",
+      "category": "小食",
+      "price": 55.0,
+      "original_price": 55.0,
+      "full_meal": true,
+      "tags": [
+        "spicy",
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    },
+    {
+      "code": "9900004835",
+      "name": "麦乐鸡套餐",
+      "category": "小食",
+      "price": 40.5,
+      "original_price": 40.5,
+      "full_meal": true,
+      "tags": [
+        "chicken",
+        "staple",
+        "variety"
+      ]
+    }
+  ]
+}
