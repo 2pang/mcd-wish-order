@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "source": "illustrative",
+    "captured_at": null,
+    "note": "结构对齐麦当劳 MCP（query-meals / query-meal-detail / list-nutrition-foods / calculate-price）的字段形态，数值为演示用示例，不是门店实时报价。运行 `python wish.py --live` 会改用真实 MCP 返回。README 的「真实性对照表」逐项说明了哪些字段来自真实接口、哪些是快照。",
+    "fields_aligned": ["query-nearby-stores", "query-meals", "query-meal-detail", "list-nutrition-foods", "available-coupons", "calculate-price"]
+  },
+  "store": {
+    "code": "DEMO-001",
+    "name": "示例门店（结构占位）",
+    "address": "示例地址",
+    "available_slots": ["breakfast", "lunch", "dinner", "latenight"]
+  },
+  "meals": [
+    {"code": "M001", "name": "巨无霸", "category": "汉堡", "price": 24.5, "tags": ["beef", "staple", "filling"], "kcal": 550, "protein": 26, "fat": 29, "carb": 45, "sodium": 961, "calcium": 120},
+    {"code": "M002", "name": "麦辣鸡腿堡", "category": "汉堡", "price": 22.0, "tags": ["chicken", "spicy", "staple"], "kcal": 517, "protein": 24, "fat": 26, "carb": 44, "sodium": 1208, "calcium": 95},
+    {"code": "M003", "name": "板烧鸡腿堡", "category": "汉堡", "price": 23.0, "tags": ["chicken", "staple", "warm"], "kcal": 470, "protein": 25, "fat": 21, "carb": 42, "sodium": 830, "calcium": 100},
+    {"code": "M004", "name": "麦香鱼", "category": "汉堡", "price": 17.5, "tags": ["fish", "staple", "light"], "kcal": 340, "protein": 15, "fat": 15, "carb": 38, "sodium": 556, "calcium": 110},
+    {"code": "M005", "name": "麦香鸡", "category": "汉堡", "price": 15.0, "tags": ["chicken", "staple", "value"], "kcal": 360, "protein": 15, "fat": 17, "carb": 38, "sodium": 620, "calcium": 80},
+    {"code": "M006", "name": "双层吉士汉堡", "category": "汉堡", "price": 15.5, "tags": ["beef", "staple", "value", "comfort"], "kcal": 450, "protein": 25, "fat": 24, "carb": 34, "sodium": 910, "calcium": 220},
+    {"code": "M007", "name": "吉士汉堡包", "category": "汉堡", "price": 12.5, "tags": ["beef", "staple", "value", "light"], "kcal": 300, "protein": 16, "fat": 13, "carb": 30, "sodium": 492, "calcium": 180},
+    {"code": "S001", "name": "中薯条", "category": "小食", "price": 12.0, "tags": ["fries", "comfort"], "kcal": 340, "protein": 4, "fat": 16, "carb": 44, "sodium": 165, "calcium": 10},
+    {"code": "S002", "name": "大薯条", "category": "小食", "price": 14.5, "tags": ["fries", "comfort", "share"], "kcal": 460, "protein": 5, "fat": 22, "carb": 59, "sodium": 220, "calcium": 14},
+    {"code": "S003", "name": "麦乐鸡 5 块", "category": "小食", "price": 13.0, "tags": ["chicken", "share", "comfort"], "kcal": 230, "protein": 14, "fat": 13, "carb": 12, "sodium": 420, "calcium": 20},
+    {"code": "S004", "name": "玉米杯", "category": "小食", "price": 9.0, "tags": ["light", "lowcal", "warm"], "kcal": 90, "protein": 3, "fat": 1.5, "carb": 18, "sodium": 5, "calcium": 4},
+    {"code": "S005", "name": "香芋派", "category": "小食", "price": 8.0, "tags": ["sweet", "dessert", "comfort"], "kcal": 250, "protein": 3, "fat": 12, "carb": 33, "sodium": 130, "calcium": 20},
+    {"code": "D001", "name": "可乐（中）", "category": "饮料", "price": 9.5, "tags": ["soda", "drink"], "kcal": 150, "protein": 0, "fat": 0, "carb": 38, "sodium": 15, "calcium": 0},
+    {"code": "D002", "name": "可乐（大）", "category": "饮料", "price": 10.5, "tags": ["soda", "drink", "large"], "kcal": 200, "protein": 0, "fat": 0, "carb": 50, "sodium": 20, "calcium": 0},
+    {"code": "D003", "name": "无糖可乐（中）", "category": "饮料", "price": 9.5, "tags": ["soda", "drink", "lowcal", "light"], "kcal": 0, "protein": 0, "fat": 0, "carb": 0, "sodium": 15, "calcium": 0},
+    {"code": "D004", "name": "麦咖啡（中）", "category": "饮料", "price": 12.0, "tags": ["caffeine", "drink", "warm", "lowcal"], "kcal": 5, "protein": 0.3, "fat": 0, "carb": 0.8, "sodium": 5, "calcium": 5},
+    {"code": "D005", "name": "纯牛奶", "category": "饮料", "price": 8.0, "tags": ["drink", "warm", "light"], "kcal": 110, "protein": 6, "fat": 6, "carb": 9, "sodium": 90, "calcium": 200},
+    {"code": "T001", "name": "圆筒冰淇淋", "category": "甜品", "price": 4.0, "tags": ["sweet", "dessert", "comfort", "value"], "kcal": 150, "protein": 3, "fat": 4, "carb": 25, "sodium": 60, "calcium": 90},
+    {"code": "T002", "name": "麦旋风（奥利奥）", "category": "甜品", "price": 12.5, "tags": ["sweet", "dessert", "comfort"], "kcal": 280, "protein": 5, "fat": 9, "carb": 45, "sodium": 130, "calcium": 130},
+    {"code": "T003", "name": "苹果片", "category": "甜品", "price": 6.0, "tags": ["light", "lowcal", "sweet"], "kcal": 35, "protein": 0.2, "fat": 0.1, "carb": 9, "sodium": 0, "calcium": 3}
+  ],
+  "combos": [
+    {"code": "C001", "name": "巨无霸三件套", "price": 36.5, "items": ["M001", "S001", "D001"], "category": "套餐", "tags": ["beef", "staple", "filling", "variety"], "kcal": 1040, "protein": 34, "fat": 49, "carb": 127, "sodium": 1141, "calcium": 130, "swap": {"S001": ["S002", "S004", "S003"], "D001": ["D002", "D003", "D004"]}},
+    {"code": "C002", "name": "麦辣鸡腿堡三件套", "price": 34.0, "items": ["M002", "S001", "D001"], "category": "套餐", "tags": ["chicken", "spicy", "staple", "variety"], "kcal": 1007, "protein": 32, "fat": 46, "carb": 126, "sodium": 1388, "calcium": 105, "swap": {"S001": ["S002", "S004"], "D001": ["D002", "D003"]}},
+    {"code": "C003", "name": "板烧鸡腿堡三件套", "price": 35.0, "items": ["M003", "S001", "D001"], "category": "套餐", "tags": ["chicken", "staple", "variety", "warm"], "kcal": 960, "protein": 33, "fat": 41, "carb": 124, "sodium": 1010, "calcium": 110, "swap": {"S001": ["S004", "S002"], "D001": ["D004", "D003"]}},
+    {"code": "C004", "name": "麦香鱼套餐", "price": 30.0, "items": ["M004", "S001", "D001"], "category": "套餐", "tags": ["fish", "light", "staple", "variety"], "kcal": 830, "protein": 22, "fat": 30, "carb": 118, "sodium": 736, "calcium": 120, "swap": {"S001": ["S004"], "D001": ["D003", "D004"]}},
+    {"code": "C005", "name": "双层吉士套餐", "price": 28.0, "items": ["M006", "S004", "D003"], "category": "套餐", "tags": ["beef", "value", "light", "comfort"], "kcal": 540, "protein": 28, "fat": 25.5, "carb": 52, "sodium": 915, "calcium": 224, "swap": {"S004": ["S001"], "D003": ["D001"]}},
+    {"code": "C006", "name": "1+1 随心配（红区+白区）", "price": 13.9, "items": ["M006", "T001"], "category": "随心配", "tags": ["value", "share", "comfort"], "kcal": 600, "protein": 28, "fat": 28, "carb": 59, "sodium": 970, "calcium": 310, "swap": {"M006": ["M007", "M005", "M004"], "T001": ["S005", "T003"]}}
+  ],
+  "coupons": [
+    {"id": "CP01", "name": "满 30 减 6", "type": "threshold", "threshold": 30, "off": 6, "stackable": false, "channel": "any", "slot": "any", "note": "整单金额需达到 30 元"},
+    {"id": "CP02", "name": "满 50 减 12", "type": "threshold", "threshold": 50, "off": 12, "stackable": false, "channel": "any", "slot": "any", "note": "整单金额需达到 50 元"},
+    {"id": "CP04", "name": "小食第二份半价", "type": "second_half", "category": "小食", "threshold": 0, "off": 0, "stackable": false, "channel": "pickup", "slot": "any", "note": "仅到店可用，需两件小食"},
+    {"id": "CP05", "name": "早餐满 15 减 5", "type": "threshold", "threshold": 15, "off": 5, "stackable": false, "channel": "any", "slot": "breakfast", "note": "仅 05:00-10:29 可用"},
+    {"id": "CP06", "name": "甜品第二份 1 元", "type": "second_fixed", "category": "甜品", "threshold": 0, "off": 0, "fixed_price": 1.0, "stackable": false, "channel": "pickup", "slot": "any", "note": "仅到店可用，需两件甜品"},
+    {"id": "CP07", "name": "满 40 减 8（外送专享）", "type": "threshold", "threshold": 40, "off": 8, "stackable": false, "channel": "delivery", "slot": "any", "note": "仅麦乐送可用，另计配送费 9 元"}
+  ],
+  "delivery_fee": 9.0,
+  "channel_default": "pickup"
+}
